@@ -8,6 +8,7 @@ use App\Repository\CommentRepository;
 use App\Repository\ConferenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
@@ -32,7 +33,7 @@ class ConferenceController extends AbstractController
     }
 
     #[Route(path: '/conference/{slug}', name: 'conference_show')]
-    public function show(string $slug, Request $request) : Response
+    public function show(string $slug, Request $request, #[Autowire('%photo_dir%')] string $photoDir) : Response
     {
 
         $comment = new Comment();
@@ -48,6 +49,12 @@ class ConferenceController extends AbstractController
         if ($form->isSubmitted() && $form->isValid()) {
             $comment->setConference($conference);
             
+            if ($photo = $form['photo']->getData()) {
+                $filename = bin2hex(random_bytes(6)) . '.' . $photo->guessExtension();
+                $photo->move($photoDir, $filename);
+                $comment->setPhotoFilename($filename);
+            }
+
             $this->em->persist($comment);
             $this->em->flush();
         }
@@ -65,6 +72,7 @@ class ConferenceController extends AbstractController
             'nextPage' => $pageNumber + 1,
             'prevPage' => $pageNumber < 2 ? null : $pageNumber - 1,
             'currentPage' => $pageNumber,
+            'photoDir' => $photoDir,
             "commentForm" => $form
         ]);
     }

@@ -26,6 +26,10 @@
                         </small>
 
                         <p>{{ comment.text }}</p>
+
+                                <div>
+                                    <img src="{{ asset('uploads/photos/' ~ comment.photofilename) }}"/>
+                                </div>
                     </li>
                 
                 {% endfor %}
