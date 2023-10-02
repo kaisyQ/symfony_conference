@@ -4,6 +4,7 @@ namespace App\Controller;
 
 use App\Entity\Comment;
 use App\Form\CommentType;
+use App\Message\CommentMessage;
 use App\Repository\CommentRepository;
 use App\Repository\ConferenceRepository;
 use Doctrine\ORM\EntityManagerInterface;
@@ -12,6 +13,7 @@ use Symfony\Component\DependencyInjection\Attribute\Autowire;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\Messenger\MessageBusInterface;
 
 class ConferenceController extends AbstractController
 {
@@ -21,6 +23,7 @@ class ConferenceController extends AbstractController
         private ConferenceRepository $conferenceRepository,
         private CommentRepository $commentRepository,
         private EntityManagerInterface $em,
+        private MessageBusInterface $messageBus
     ) {}
 
     #[Route(path: '/', name: 'homepage')]
@@ -57,6 +60,8 @@ class ConferenceController extends AbstractController
 
             $this->em->persist($comment);
             $this->em->flush();
+            $this->messageBus->dispatch(new CommentMessage($comment->getId()));
+
         }
 
         $pageNumber = max(1, $request->query->getInt('pageNumber', 1));
@@ -66,6 +71,8 @@ class ConferenceController extends AbstractController
         );
 
 
+
+        //dd($paginator);
         return $this->render('conference/show.html.twig', [
             'conference' => $conference,
             'comments' => $paginator,

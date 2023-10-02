@@ -20,6 +20,10 @@ framework:
 
     ide: vscode
 
+when@dev:
+    framework: 
+        http_cache: true
+
 when@test:
     framework:
         test: true
